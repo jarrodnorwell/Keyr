@@ -1,0 +1,15 @@
+{
+  "originHash" : "42b7d9490bd64475c8e399c0586c137b1159043411acd6d0f687b8c919ca4557",
+  "pins" : [
+    {
+      "identity" : "onboardingkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/jarrodnorwell/OnboardingKit",
+      "state" : {
+        "branch" : "main",
+        "revision" : "1364e54d8748cf55a195295888cfb14c6750d3a0"
+      }
+    }
+  ],
+  "version" : 3
+}
