@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 class AccountStore {
     var accounts: [Account] = [] {
@@ -38,17 +39,11 @@ class AccountStore {
             let loaded = try keychain.loadAccounts()
             DispatchQueue.main.async {
                 self.accounts = loaded
-                if let delegate = self.delegate {
-                    delegate.accountStore(self, didLoadAccounts: self.accounts)
-                }
             }
         } catch {
             print("Keychain load error: \(error)")
             DispatchQueue.main.async {
                 self.accounts = []
-                if let delegate = self.delegate {
-                    delegate.accountStore(self, didLoadAccounts: self.accounts)
-                }
             }
         }
     }
@@ -88,6 +83,21 @@ class AccountStore {
         save()
         delegate?.accountStoreDidUpdate(self)
     }*/
+    
+    @objc private func reloadFromKeychain() {
+        do {
+            let loaded = try keychain.loadAccounts()
+            
+            if loaded != self.accounts {
+                self.accounts = loaded
+                if let delegate {
+                    delegate.accountStore(self, didLoadAccounts: self.accounts)
+                }
+            }
+        } catch {
+            print("iCloud sync: failed to reload: \(error)")
+        }
+    }
     
     func rename(at index: Int, to name: String) {
         guard accounts.indices.contains(index) else {

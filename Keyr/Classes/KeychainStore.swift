@@ -16,17 +16,21 @@ class KeychainStore {
         let encoder = JSONEncoder()
         let data = try encoder.encode(accounts)
 
-        let query: [CFString: Any] = [
+        // Base query
+        let baseQuery: [CFString: Any] = [
             kSecClass: kSecClassGenericPassword,
             kSecAttrService: service,
-            kSecAttrAccount: accountsKey
+            kSecAttrAccount: accountsKey,
+            kSecAttrSynchronizable: kCFBooleanTrue as Any  // <-- iCloud sync
         ]
 
-        // Delete existing
-        SecItemDelete(query as CFDictionary)
+        // Remove previous copy
+        SecItemDelete(baseQuery as CFDictionary)
 
-        // Add new
-        let addQuery = query.merging([kSecValueData: data]) { (_, new) in new }
+        // Add updated version
+        var addQuery = baseQuery
+        addQuery[kSecValueData] = data
+
         let status = SecItemAdd(addQuery as CFDictionary, nil)
         guard status == errSecSuccess else {
             throw KeychainError.unhandled(status: status)
@@ -38,15 +42,26 @@ class KeychainStore {
             kSecClass: kSecClassGenericPassword,
             kSecAttrService: service,
             kSecAttrAccount: accountsKey,
+            kSecAttrSynchronizable: kCFBooleanTrue as Any, // <-- must match save
             kSecReturnData: kCFBooleanTrue as Any,
             kSecMatchLimit: kSecMatchLimitOne
         ]
 
         var item: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &item)
-        if status == errSecItemNotFound { return [] }
-        guard status == errSecSuccess else { throw KeychainError.unhandled(status: status) }
-        guard let data = item as? Data else { return [] }
+
+        if status == errSecItemNotFound {
+            return []
+        }
+
+        guard status == errSecSuccess else {
+            throw KeychainError.unhandled(status: status)
+        }
+
+        guard let data = item as? Data else {
+            return []
+        }
+
         let decoder = JSONDecoder()
         return try decoder.decode([Account].self, from: data)
     }

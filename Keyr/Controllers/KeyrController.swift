@@ -203,7 +203,7 @@ class KeyrController : UICollectionViewController {
         }
         
         var issuerFromLabel: String? = nil
-        var nameOnly = label
+        var nameOnly = label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Manual" : label
         if label.contains(":") {
             let parts = label.split(separator: ":", maxSplits: 1).map(String.init)
             issuerFromLabel = parts[0]
@@ -222,7 +222,7 @@ class KeyrController : UICollectionViewController {
         default: .sha1
         }
         
-        if let finalIssuer {
+        if let finalIssuer, !finalIssuer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             let account: Account = .init(issuer: finalIssuer,
                                          name: nameOnly,
                                          secretBase32: secret.replacingOccurrences(of: " ", with: ""),
